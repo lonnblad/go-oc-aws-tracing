@@ -4,16 +4,18 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 
-	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/trace"
 )
 
 const (
-	tagAWSAgent     = "request.aws.agent"
-	tagAWSOperation = "request.aws.operation"
-	tagAWSService   = "request.aws.service"
-	tagAWSRegion    = "request.aws.region"
-	tagAWSRequestID = "request.aws.request_id"
+	tagAgent      = "aws.user_agent"
+	tagOperation  = "aws.request.operation"
+	tagService    = "aws.request.service"
+	tagRegion     = "aws.request.region"
+	tagRequestID  = "aws.request.request_id"
+	tagMethod     = "aws.request.method"
+	tagURL        = "aws.request.url"
+	tagStatusCode = "aws.response.status_code"
 )
 
 type handlers struct{}
@@ -35,14 +37,14 @@ func WrapSession(s *session.Session) *session.Session {
 
 func (h *handlers) Send(req *request.Request) {
 	attributes := []trace.Attribute{
-		trace.StringAttribute(tagAWSRegion, req.ClientInfo.SigningRegion),
-		trace.StringAttribute(tagAWSService, req.Operation.Name),
-		trace.StringAttribute(tagAWSAgent, h.awsAgent(req)),
-		trace.StringAttribute(tagAWSOperation, req.ClientInfo.ServiceName),
-		trace.StringAttribute(tagAWSRequestID, req.RequestID),
+		trace.StringAttribute(tagAgent, h.awsAgent(req)),
 
-		trace.StringAttribute(ochttp.MethodAttribute, req.Operation.HTTPMethod),
-		trace.StringAttribute(ochttp.URLAttribute, req.HTTPRequest.URL.String()),
+		trace.StringAttribute(tagRegion, req.ClientInfo.SigningRegion),
+		trace.StringAttribute(tagService, req.ClientInfo.ServiceName),
+		trace.StringAttribute(tagOperation, req.Operation.Name),
+		trace.StringAttribute(tagRequestID, req.RequestID),
+		trace.StringAttribute(tagMethod, req.Operation.HTTPMethod),
+		trace.StringAttribute(tagURL, req.HTTPRequest.URL.String()),
 	}
 
 	ctx, span := trace.StartSpan(
@@ -62,9 +64,7 @@ func (h *handlers) Complete(req *request.Request) {
 	}
 
 	statusCode := req.HTTPResponse.StatusCode
-	span.SetStatus(ochttp.TraceStatus(statusCode, req.HTTPResponse.Status))
-	span.AddAttributes(trace.Int64Attribute(ochttp.StatusCodeAttribute, int64(statusCode)))
-
+	span.AddAttributes(trace.Int64Attribute(tagStatusCode, int64(statusCode)))
 	span.End()
 }
 
