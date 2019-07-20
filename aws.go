@@ -4,6 +4,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 
+	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/trace"
 )
 
@@ -64,6 +65,7 @@ func (h *handlers) Complete(req *request.Request) {
 	}
 
 	statusCode := req.HTTPResponse.StatusCode
+	span.SetStatus(ochttp.TraceStatus(statusCode, req.HTTPResponse.Status))
 	span.AddAttributes(trace.Int64Attribute(tagStatusCode, int64(statusCode)))
 	span.End()
 }
