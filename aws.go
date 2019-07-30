@@ -1,4 +1,16 @@
-package ocawstracing
+// Package aws implements an AWS session wrapper, causing requests and responses to be traced.
+//
+// The injected handler will create a new child-span with a name based on the called AWS service and operation.
+// The child-span's status will be set based on the AWS response and include the following attributes:
+//  - aws.user_agent
+//  - aws.request.operation
+//  - aws.request.service
+//  - aws.request.region
+//  - aws.request.method
+//  - aws.request.url
+//  - aws.response.status_code
+//
+package aws
 
 import (
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -13,7 +25,6 @@ const (
 	tagOperation  = "aws.request.operation"
 	tagService    = "aws.request.service"
 	tagRegion     = "aws.request.region"
-	tagRequestID  = "aws.request.request_id"
 	tagMethod     = "aws.request.method"
 	tagURL        = "aws.request.url"
 	tagStatusCode = "aws.response.status_code"
@@ -21,7 +32,7 @@ const (
 
 type handlers struct{}
 
-// WrapSession wraps a session.Session, causing requests and responses to be traced.
+// WrapSession wraps an AWS Session, causing requests and responses to be traced.
 func WrapSession(s *session.Session) *session.Session {
 	h := &handlers{}
 	s = s.Copy()
@@ -36,14 +47,13 @@ func WrapSession(s *session.Session) *session.Session {
 	return s
 }
 
+// Send is an injected handler that will be executed before the AWS request is sent.
 func (h *handlers) Send(req *request.Request) {
 	attributes := []trace.Attribute{
 		trace.StringAttribute(tagAgent, h.awsAgent(req)),
-
-		trace.StringAttribute(tagRegion, req.ClientInfo.SigningRegion),
-		trace.StringAttribute(tagService, req.ClientInfo.ServiceName),
 		trace.StringAttribute(tagOperation, req.Operation.Name),
-		trace.StringAttribute(tagRequestID, req.RequestID),
+		trace.StringAttribute(tagService, req.ClientInfo.ServiceName),
+		trace.StringAttribute(tagRegion, req.ClientInfo.SigningRegion),
 		trace.StringAttribute(tagMethod, req.Operation.HTTPMethod),
 		trace.StringAttribute(tagURL, req.HTTPRequest.URL.String()),
 	}
@@ -58,6 +68,7 @@ func (h *handlers) Send(req *request.Request) {
 	req.SetContext(ctx)
 }
 
+// Complete is an injected handler that will be executed after the AWS request is completed.
 func (h *handlers) Complete(req *request.Request) {
 	span := trace.FromContext(req.Context())
 	if span == nil {
