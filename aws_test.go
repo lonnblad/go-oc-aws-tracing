@@ -24,7 +24,7 @@ const (
 	tagStatusCode = "aws.response.status_code"
 )
 
-func TestAWS(t *testing.T) {
+func Test_With_Parent_Span(t *testing.T) {
 	exporter := new(mockExporter)
 	trace.RegisterExporter(exporter)
 	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})

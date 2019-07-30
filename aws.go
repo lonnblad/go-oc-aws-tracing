@@ -1,7 +1,7 @@
 // Package aws implements an AWS session wrapper, causing requests and responses to be traced.
 //
-// The injected handler will create a new child-span with a name based on the called AWS service and operation.
-// The child-span's status will be set based on the AWS response and include the following attributes:
+// The injected handler will create a new span with a name based on the called AWS service and operation.
+// The span's status will be set based on the AWS response and include the following attributes:
 //  - aws.user_agent
 //  - aws.request.operation
 //  - aws.request.service
