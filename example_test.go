@@ -16,6 +16,7 @@ func ExampleWrapSession() {
 	sess = aws_trace.WrapSession(sess)
 
 	s3api := s3.New(sess)
+	// nolint:errcheck
 	s3api.CreateBucket(&s3.CreateBucketInput{
 		Bucket: aws.String("some-bucket-name"),
 	})
