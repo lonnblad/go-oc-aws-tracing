@@ -75,9 +75,11 @@ func (h *handlers) Complete(req *request.Request) {
 		return
 	}
 
-	statusCode := req.HTTPResponse.StatusCode
-	span.SetStatus(ochttp.TraceStatus(statusCode, req.HTTPResponse.Status))
-	span.AddAttributes(trace.Int64Attribute(tagStatusCode, int64(statusCode)))
+	if req.HTTPResponse != nil {
+		statusCode := req.HTTPResponse.StatusCode
+		span.SetStatus(ochttp.TraceStatus(statusCode, req.HTTPResponse.Status))
+		span.AddAttributes(trace.Int64Attribute(tagStatusCode, int64(statusCode)))
+	}
 	span.End()
 }
 
