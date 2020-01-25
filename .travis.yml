@@ -8,6 +8,8 @@ go:
 
 sudo: false
 
+go_import_path: github.com/lonnblad/go-oc-aws-tracing
+
 install:
   - go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
   - go get -u github.com/go-playground/overalls
