@@ -1,14 +1,18 @@
 language: go
-
 go:
 - 1.10.x
 - 1.11.x
 - 1.12.x
 - 1.13.x
 
+os:
+  - linux
+  - osx
+dist: trusty
 sudo: false
 
-go_import_path: github.com/lonnblad/go-oc-aws-tracing
+env:
+  - GO111MODULE=on
 
 install:
   - go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
